@@ -1,17 +1,18 @@
 import axios from "axios";
 
-const getAllPersons = () => axios.get("http://localhost:3001/persons");
+const BASE_URL = "https://fullstack-part3-phonebook-backend.fly.dev/api";
+
+const getAllPersons = () => axios.get(`${BASE_URL}/persons`);
 const createNewPerson = (newName, newNumber) =>
-  axios.post("http://localhost:3001/persons", {
+  axios.post(`${BASE_URL}/persons`, {
     name: newName,
     number: newNumber,
   });
 
-const deletePerson = (id) =>
-  axios.delete(`http://localhost:3001/persons/${id}`);
+const deletePerson = (id) => axios.delete(`${BASE_URL}/persons/${id}`);
 
 const updatePerson = (id, name, number) =>
-  axios.put(`http://localhost:3001/persons/${id}`, {
+  axios.put(`${BASE_URL}/persons/${id}`, {
     name: name,
     number: number,
   });
