@@ -56,8 +56,11 @@ router.delete('/:id', async (request, response) => {
 router.put('/:id', async (request, response) => {
   const id = request.params.id
 
-  if ('user' in request.body && 'id' in request.body['user']) {
-    request.body['user'] = mongoose.Types.ObjectId(request.body['user']['id'])
+  if (
+    'user' in request.body &&
+    !mongoose.Types.ObjectId(request.body['user'])
+  ) {
+    request.body['user'] = mongoose.Types.ObjectId(request.body['user'])
   }
 
   const updatedBlog = await Blog.findByIdAndUpdate(id, request.body, {
