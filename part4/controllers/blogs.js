@@ -2,6 +2,7 @@ const router = require('express').Router()
 const Blog = require('../models/blog')
 const User = require('../models/user')
 const jwt = require('jsonwebtoken')
+const mongoose = require('mongoose')
 
 router.get('/', async (request, response) => {
   const blogs = await Blog.find({}).populate('user', { username: 1, name: 1 })
@@ -54,6 +55,11 @@ router.delete('/:id', async (request, response) => {
 
 router.put('/:id', async (request, response) => {
   const id = request.params.id
+
+  if ('user' in request.body && 'id' in request.body['user']) {
+    request.body['user'] = mongoose.Types.ObjectId(request.body['user']['id'])
+  }
+  console.log(request.body)
   const updatedBlog = await Blog.findByIdAndUpdate(id, request.body, {
     new: true,
   })
