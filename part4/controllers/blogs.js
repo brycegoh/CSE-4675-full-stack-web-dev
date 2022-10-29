@@ -59,7 +59,7 @@ router.put('/:id', async (request, response) => {
   if ('user' in request.body && 'id' in request.body['user']) {
     request.body['user'] = mongoose.Types.ObjectId(request.body['user']['id'])
   }
-  console.log(request.body)
+
   const updatedBlog = await Blog.findByIdAndUpdate(id, request.body, {
     new: true,
   })
