@@ -1,9 +1,12 @@
 const mongoose = require('mongoose')
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt')
 const supertest = require('supertest')
 const app = require('../app')
 const api = supertest(app)
 const Blog = require('../models/blog')
 const User = require('../models/user')
+const config = require('../utils/config')
 
 let TOKEN = null
 let USER_ID = null
@@ -31,21 +34,14 @@ beforeAll(async () => {
     password: 'testing',
   }
 
-  let response = await api
-    .post('/api/users')
-    .send(newUser)
-    .expect(201)
-    .expect('Content-Type', /application\/json/)
-
-  USER_ID = response.body.id
-
-  response = await api
-    .post('/api/login')
-    .send(newUser)
-    .expect(200)
-    .expect('Content-Type', /application\/json/)
-  expect(response.body.token).toBeDefined()
-  TOKEN = `Bearer ${response.body.token}`
+  const newuser = await User(newUser).save()
+  const user = await User.findOne({ username: newUser.username })
+  const userForToken = {
+    username: user.username,
+    id: user._id,
+  }
+  TOKEN = `Bearer ${jwt.sign(userForToken, config.JWT_SECRET)}`
+  USER_ID = user._id
 })
 
 beforeEach(async () => {
@@ -195,6 +191,83 @@ test('Editing of blog', async () => {
 
   expect(response.body.title).toBeDefined()
   expect(response.body.title).toEqual('new')
+})
+
+test('Error if username and password not provided', async () => {
+  let newUser = {}
+  let response = await api.post('/api/users').send(newUser).expect(400)
+  expect(response.body.error).toBeDefined()
+  expect(response.body).toEqual({
+    error: 'Must enter username and password',
+  })
+
+  newUser = {
+    username: 'asda',
+  }
+  response = await api.post('/api/users').send(newUser).expect(400)
+  expect(response.body.error).toBeDefined()
+  expect(response.body).toEqual({
+    error: 'Must enter username and password',
+  })
+
+  newUser = {
+    password: 'asda',
+  }
+  response = await api.post('/api/users').send(newUser).expect(400)
+  expect(response.body.error).toBeDefined()
+  expect(response.body).toEqual({
+    error: 'Must enter username and password',
+  })
+})
+
+test('Error if username and password not at least 3 characters long', async () => {
+  let newUser = {
+    username: 'abc',
+    password: 'ab',
+  }
+  let response = await api.post('/api/users').send(newUser).expect(400)
+  expect(response.body.error).toBeDefined()
+  expect(response.body).toEqual({
+    error: 'Username and password must be at least 3 characters long',
+  })
+  newUser = {
+    username: 'ab',
+    password: 'abc',
+  }
+  response = await api.post('/api/users').send(newUser).expect(400)
+  expect(response.body.error).toBeDefined()
+  expect(response.body).toEqual({
+    error: 'Username and password must be at least 3 characters long',
+  })
+  newUser = {
+    username: 'ab',
+    password: 'ab',
+  }
+  response = await api.post('/api/users').send(newUser).expect(400)
+  expect(response.body.error).toBeDefined()
+  expect(response.body).toEqual({
+    error: 'Username and password must be at least 3 characters long',
+  })
+})
+
+test('Error if username is not unique', async () => {
+  let newUser = {
+    username: 'testing',
+    password: 'abc',
+  }
+  let response = await api.post('/api/users').send(newUser).expect(400)
+  expect(response.body.error).toBeDefined()
+  expect(response.body).toEqual({
+    error: 'Username has already been taken',
+  })
+})
+
+test('User succesfully created if all requirements are met', async () => {
+  let newUser = {
+    username: 'testingg',
+    password: 'abc',
+  }
+  await api.post('/api/users').send(newUser).expect(201)
 })
 
 afterAll(() => {
