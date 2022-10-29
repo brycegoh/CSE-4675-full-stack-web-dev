@@ -58,7 +58,7 @@ router.put('/:id', async (request, response) => {
 
   if (
     'user' in request.body &&
-    !mongoose.Types.ObjectId(request.body['user'])
+    !mongoose.Types.ObjectId.isValid(request.body['user'])
   ) {
     request.body['user'] = mongoose.Types.ObjectId(request.body['user'])
   }
