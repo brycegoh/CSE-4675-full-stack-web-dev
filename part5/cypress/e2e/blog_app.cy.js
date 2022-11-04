@@ -127,7 +127,7 @@ describe('Blog app', function () {
       cy.get('#url-input').type(LEAST_LIKED_URL)
       cy.get('#create-blog-btn').click()
 
-      // cy.wait('@blogApi')
+      // eslint-disable-next-line cypress/no-unnecessary-waiting
       cy.wait(1000)
 
       cy.get('.blog').eq(0).should('contain', MOST_LIKED_TITLE)
